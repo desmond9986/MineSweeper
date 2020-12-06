@@ -39,7 +39,8 @@
         android:layout_marginTop="30dp"
         android:layout_marginLeft="15dp"
         android:layout_marginRight="15dp"
-        app:coveredColor="@color/black"/>
+        app:coveredColor="@color/black"
+        app:uncoveredColor="@android:color/darker_gray"/>
 
 
     <TableRow

@@ -1,12 +1,10 @@
 package com.example.ass2_3011712;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -18,8 +16,8 @@ public class CustomBoardView extends View {
     private Cell[][] cells;
     private int coveredColor, markedColor, uncoveredColor, mineColor;
     private Paint paint;
-    private Rect square;
     private float cellLength;
+    private int contentWidth, contentHeight;
 
     public CustomBoardView(Context context) {
         super(context);
@@ -50,6 +48,8 @@ public class CustomBoardView extends View {
        }finally {
            a.recycle();
        }
+       // initiate the paint
+       paint = new Paint(Paint.ANTI_ALIAS_FLAG);
        startGame();
    }
 
@@ -64,13 +64,6 @@ public class CustomBoardView extends View {
    }
 
    public void onDraw(Canvas canvas){
-        // get the view width and set content height same as width
-        int contentWidth = getMeasuredWidth();
-        int contentHeight = getMeasuredWidth();
-
-        // initiate the paint
-        paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-
         // set the length of cell
         cellLength = (float)contentWidth/10;
 
@@ -78,11 +71,12 @@ public class CustomBoardView extends View {
         for(int i = 0; i < 10; i++){
             for(int j = 0; j < 10; j++){
                 canvas.save();
-                canvas.translate((i * cellLength), (j * cellLength));
-                if(cells[i][j].getStatus() == Cell.Covered) {
+                canvas.translate((j * cellLength), (i * cellLength));
+                if(cells[i][j].getStatus().equals(Cell.Covered))
                     paint.setColor(coveredColor);
-                    canvas.drawRect(0,0, cellLength, cellLength, paint);
-                }
+                else if(cells[i][j].getStatus().equals(Cell.Uncovered))
+                    paint.setColor(uncoveredColor);
+                canvas.drawRect(0,0, cellLength, cellLength, paint);
                 canvas.restore();
             }
         }
@@ -107,7 +101,48 @@ public class CustomBoardView extends View {
     // public method that needs to be overridden to handle the touches from a
     // user
     public boolean onTouchEvent(MotionEvent event) {
+        // determine what kind of touch event we have
+        if(event.getAction() == MotionEvent.ACTION_DOWN){
+            //Get where the event occurred.
+            float x = event.getX();
+            float y = event.getY();
+
+            int row = 0;
+            int col = 0;
+
+            // check which column is touched
+            for(int i = 1; i <= 10; i++){
+                if(x < (i * cellLength)){
+                    col = i;
+                    break;
+                }
+            }
+            // check which row is touched
+            for(int i = 1; i <= 10; i++){
+                if(y < (i * cellLength)){
+                    row = i;
+                    break;
+                }
+            }
+            // uncover the cell that touch by user
+            cells[row-1][col-1].uncover();
+            return true;
+        }
+        else if(event.getAction() == MotionEvent.ACTION_UP) {
+            // tell android the state of this view has changed
+            invalidate();
+            return true;
+        }
         return super.onTouchEvent(event);
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec){
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        // get the view width and set content height same as width
+        contentWidth = getMeasuredWidth();
+        contentHeight = getMeasuredWidth();
+        this.setMeasuredDimension(getMeasuredWidth(), getMeasuredWidth());
     }
     /**
      * Gets the covered color attribute value.

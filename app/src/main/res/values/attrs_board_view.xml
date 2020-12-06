@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="CustomBoardView">
+        <attr name="coveredColor" format = "color"/>
+        <attr name="uncoveredColor" format = "color"/>
+        <attr name="markedColor" format = "color"/>
+        <attr name="mineColor" format = "color"/>
+    </declare-styleable>
+</resources>

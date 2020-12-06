@@ -3,9 +3,9 @@ package com.example.ass2_3011712;
 // this class represents a cell in minesweeper
 public class Cell {
     private String status;
-    private final String Covered = "covered";
-    private final String Uncovered ="uncovered";
-    private final String Marked = "marked";
+    public final static String Covered = "covered";
+    public final static String Uncovered ="uncovered";
+    public final static String Marked = "marked";
     private boolean isMine;
 
     public Cell(boolean isMine){

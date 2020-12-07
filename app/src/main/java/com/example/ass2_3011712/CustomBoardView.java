@@ -12,6 +12,7 @@ import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
@@ -25,6 +26,8 @@ public class CustomBoardView extends View {
     private float cellLength;
     private int contentWidth, contentHeight;
     private RectF textBounds;
+    private boolean mineFound;
+    private LoseGameListener loseGameListener;
 
     public CustomBoardView(Context context) {
         super(context);
@@ -76,6 +79,8 @@ public class CustomBoardView extends View {
                     cells[i][j] = new Cell(false);
             }
         }
+        // set mine found to false
+        mineFound = false;
    }
 
    // call this method and return the list that randomly place 20 mines in cells
@@ -128,6 +133,9 @@ public class CustomBoardView extends View {
                     textPaint.setColor(Color.BLACK);
                     canvas.drawText("M", textBounds.centerX(), textBounds.centerY() + textOffset, textPaint);
                     canvas.restore();
+                    // set mine found to true
+                    mineFound = true;
+                    loseGameListener.onEvent();
                 }
 
             }
@@ -153,36 +161,42 @@ public class CustomBoardView extends View {
     // public method that needs to be overridden to handle the touches from a
     // user
     public boolean onTouchEvent(MotionEvent event) {
-        // determine what kind of touch event we have
-        if(event.getAction() == MotionEvent.ACTION_DOWN){
-            //Get where the event occurred.
-            float x = event.getX();
-            float y = event.getY();
+        // check if a mine is uncovered
+        if(!mineFound) {
+            // determine what kind of touch event we have
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                //Get where the event occurred.
+                float x = event.getX();
+                float y = event.getY();
 
-            int row = 0;
-            int col = 0;
+                int row = 0;
+                int col = 0;
 
-            // check which column is touched
-            for(int i = 1; i <= 10; i++){
-                if(x < (i * cellLength)){
-                    col = i;
-                    break;
+                // check which column is touched
+                for (int i = 1; i <= 10; i++) {
+                    if (x < (i * cellLength)) {
+                        col = i;
+                        break;
+                    }
                 }
-            }
-            // check which row is touched
-            for(int i = 1; i <= 10; i++){
-                if(y < (i * cellLength)){
-                    row = i;
-                    break;
+                // check which row is touched
+                for (int i = 1; i <= 10; i++) {
+                    if (y < (i * cellLength)) {
+                        row = i;
+                        break;
+                    }
                 }
+                // uncover the cell that touch by user
+                cells[row - 1][col - 1].uncover();
+                return true;
+            } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                // tell android the state of this view has changed
+                invalidate();
+                return true;
             }
-            // uncover the cell that touch by user
-            cells[row-1][col-1].uncover();
-            return true;
         }
-        else if(event.getAction() == MotionEvent.ACTION_UP) {
-            // tell android the state of this view has changed
-            invalidate();
+        else{
+            loseGameListener.onEvent();
             return true;
         }
         return super.onTouchEvent(event);
@@ -263,5 +277,12 @@ public class CustomBoardView extends View {
      */
     public void setMineColor(int mineColor) {
         this.mineColor = mineColor;
+    }
+
+    public interface LoseGameListener{
+        void onEvent();
+    }
+    public void setLoseGameListener(LoseGameListener eventListener) {
+        loseGameListener = eventListener;
     }
 }

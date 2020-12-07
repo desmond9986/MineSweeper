@@ -33,6 +33,7 @@
     </TableRow>
 
     <com.example.ass2_3011712.CustomBoardView
+        android:id="@+id/game_board"
         android:layout_height="wrap_content"
         android:layout_width="match_parent"
         android:layout_below="@+id/tv_row"
@@ -50,10 +51,11 @@
         android:layout_alignParentBottom="true"
         android:layout_margin="10dp">
         <Button
+            android:id="@+id/btn_reset"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Button1"
+            android:text="Reset"
             android:layout_marginRight="5dp"/>
         <Button
             android:layout_width="0dp"

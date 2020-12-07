@@ -5,19 +5,26 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.RectF;
+import android.graphics.Typeface;
 import android.os.Build;
+import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.annotation.Nullable;
 
+import java.util.ArrayList;
+
 public class CustomBoardView extends View {
     private Cell[][] cells;
     private int coveredColor, markedColor, uncoveredColor, mineColor;
     private Paint paint;
+    private TextPaint textPaint;
     private float cellLength;
     private int contentWidth, contentHeight;
+    private RectF textBounds;
 
     public CustomBoardView(Context context) {
         super(context);
@@ -50,23 +57,50 @@ public class CustomBoardView extends View {
        }
        // initiate the paint
        paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+       textPaint = new TextPaint();
+       textPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
+       // start game
        startGame();
    }
 
    // call this method to start or restart the game
    public void startGame(){
+       ArrayList<Integer> mines = setMines();
         cells = new Cell[10][10];
         for(int i = 0; i < 10; i++){
             for(int j = 0; j < 10; j++){
-                cells[i][j] = new Cell(false);
+                // check if this iteration is a mine
+                if (mines.contains(i * 10 + j + 1))
+                    cells[i][j] = new Cell(true);
+                else
+                    cells[i][j] = new Cell(false);
             }
         }
+   }
+
+   // call this method and return the list that randomly place 20 mines in cells
+   private ArrayList<Integer> setMines(){
+        ArrayList<Integer> mines = new ArrayList<Integer>();
+        int check;
+        for(int i = 0; i < 20; i++){
+            do {
+                check = (int) (Math.random() * 100) + 1;
+                // check if this number is unique
+                if (!mines.contains(check)) {
+                    mines.add(check);
+                    break;
+                }
+            }while(true);
+        }
+        return mines;
    }
 
    public void onDraw(Canvas canvas){
         // set the length of cell
         cellLength = (float)contentWidth/10;
-
+        // set text size
+        textPaint.setTextSize(cellLength/1.5f);
+        textPaint.setTextAlign(Paint.Align.CENTER);
         // draw every cell on board
         for(int i = 0; i < 10; i++){
             for(int j = 0; j < 10; j++){
@@ -74,10 +108,28 @@ public class CustomBoardView extends View {
                 canvas.translate((j * cellLength), (i * cellLength));
                 if(cells[i][j].getStatus().equals(Cell.Covered))
                     paint.setColor(coveredColor);
-                else if(cells[i][j].getStatus().equals(Cell.Uncovered))
-                    paint.setColor(uncoveredColor);
+                else if(cells[i][j].getStatus().equals(Cell.Uncovered)){
+                    if(cells[i][j].isMine())
+                        paint.setColor(mineColor);
+                    else
+                        paint.setColor(uncoveredColor);
+                }
                 canvas.drawRect(0,0, cellLength, cellLength, paint);
                 canvas.restore();
+                // if this is a mine and uncovered then draw the mine
+                if(cells[i][j].isMine() && cells[i][j].getStatus().equals(Cell.Uncovered)){
+                    // set vertical center for the text
+                    float textHeight = textPaint.descent() - textPaint.ascent();
+                    float textOffset = (textHeight / 2) - textPaint.descent();
+                    textBounds = new RectF(0, 0, cellLength, cellLength);
+
+                    canvas.save();
+                    canvas.translate((j * cellLength), (i * cellLength));
+                    textPaint.setColor(Color.BLACK);
+                    canvas.drawText("M", textBounds.centerX(), textBounds.centerY() + textOffset, textPaint);
+                    canvas.restore();
+                }
+
             }
         }
 

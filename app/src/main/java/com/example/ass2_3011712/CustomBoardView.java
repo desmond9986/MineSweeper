@@ -10,6 +10,7 @@ import android.graphics.Typeface;
 import android.os.Build;
 import android.text.TextPaint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
@@ -20,14 +21,19 @@ import java.util.ArrayList;
 
 public class CustomBoardView extends View {
     private Cell[][] cells;
-    private int coveredColor, markedColor, uncoveredColor, mineColor;
-    private Paint paint;
-    private TextPaint textPaint;
-    private float cellLength;
-    private int contentWidth, contentHeight;
+
+    private int coveredColor, markedColor, uncoveredColor, mineColor; // color for different state of cell
+    private Paint paint; // paint tool
+    private TextPaint textPaint;    // text paint tool
+
+    private float cellLength;   // length of cell
+    private int contentWidth, contentHeight; // width and height for view
     private RectF textBounds;
-    private boolean mineFound;
-    private LoseGameListener loseGameListener;
+    private boolean mineFound;  // store boolean to tract whether u user have clicked a mine
+    private LoseGameListener loseGameListener;  // listener for lose game
+    private MarkedCountListener markedCountListener;    // listener for mark cell
+    private boolean isUncoverMode;  // store boolean to track the mode of current board
+    private int mineCount, markedCount; // store integer to track the number of mines and mines marked
 
     public CustomBoardView(Context context) {
         super(context);
@@ -67,22 +73,25 @@ public class CustomBoardView extends View {
    }
 
    // call this method to start or restart the game
-   public void startGame(){
+   public void startGame() {
        ArrayList<Integer> mines = setMines();
-        cells = new Cell[10][10];
-        for(int i = 0; i < 10; i++){
-            for(int j = 0; j < 10; j++){
-                // check if this iteration is a mine
-                if (mines.contains(i * 10 + j + 1))
-                    cells[i][j] = new Cell(true);
-                else
-                    cells[i][j] = new Cell(false);
-            }
-        }
-        // set mine found to false
-        mineFound = false;
+       cells = new Cell[10][10];
+       for (int i = 0; i < 10; i++) {
+           for (int j = 0; j < 10; j++) {
+               // check if this iteration is a mine
+               if (mines.contains(i * 10 + j + 1))
+                   cells[i][j] = new Cell(true);
+               else
+                   cells[i][j] = new Cell(false);
+           }
+       }
+       // set mine found to false
+       mineFound = false;
+       isUncoverMode = true;
+       // set the initial state of board
+       markedCount = 0;
+       mineCount = mines.size();
    }
-
    // call this method and return the list that randomly place 20 mines in cells
    private ArrayList<Integer> setMines(){
         ArrayList<Integer> mines = new ArrayList<Integer>();
@@ -119,6 +128,8 @@ public class CustomBoardView extends View {
                     else
                         paint.setColor(uncoveredColor);
                 }
+                else if(cells[i][j].getStatus().equals(Cell.Marked))
+                    paint.setColor(markedColor);
                 canvas.drawRect(0,0, cellLength, cellLength, paint);
                 canvas.restore();
                 // if this is a mine and uncovered then draw the mine
@@ -186,8 +197,31 @@ public class CustomBoardView extends View {
                         break;
                     }
                 }
-                // uncover the cell that touch by user
-                cells[row - 1][col - 1].uncover();
+                if(isUncoverMode) {
+                    // only to uncover the covered cell which is not marked
+                    if(cells[row - 1][col - 1].getStatus().equals(Cell.Covered)) {
+                        // uncover the cell that touched by user
+                        cells[row - 1][col - 1].uncover();
+                    }
+                }
+                else{
+                    // unmark a uncovered cell
+                    if(cells[row - 1][col - 1].getStatus().equals(Cell.Marked)){
+                        // unmark the cell that touched by user
+                        cells[row - 1][col - 1].unmark();
+                        // decrement of the marked count and notify listener
+                        markedCount--;
+                        markedCountListener.onMarkedChanged();
+                    }
+                    // mark a covered cell
+                    else if(cells[row - 1][col - 1].getStatus().equals(Cell.Covered)){
+                        // mark the cell that touched by user
+                        cells[row - 1][col - 1].mark();
+                        // increment of the marked count and notify listener
+                        markedCount++;
+                        markedCountListener.onMarkedChanged();
+                    }
+                }
                 return true;
             } else if (event.getAction() == MotionEvent.ACTION_UP) {
                 // tell android the state of this view has changed
@@ -195,7 +229,8 @@ public class CustomBoardView extends View {
                 return true;
             }
         }
-        else{
+        else if (mineFound && event.getAction() == MotionEvent.ACTION_DOWN) {
+            // tell user that they have lost the game
             loseGameListener.onEvent();
             return true;
         }
@@ -278,11 +313,42 @@ public class CustomBoardView extends View {
     public void setMineColor(int mineColor) {
         this.mineColor = mineColor;
     }
-
+    /**
+     * Gets the mine count value.
+     *
+     * @return The number of mines.
+     */
+    public int getMineCount(){
+        return mineCount;
+    }
+    /**
+     * Gets the mines marked count value.
+     *
+     * @return The number of mines marked.
+     */
+    public int getMarkedCount(){
+        return markedCount;
+    }
+    /**
+     * Sets the mode of the game
+     *
+     * @param isUncoverMode If this is uncover mode then set true.
+     */
+    public void isUncoverMode(boolean isUncoverMode) {
+        this.isUncoverMode = isUncoverMode;
+    }
+    // interface of lose game listener
     public interface LoseGameListener{
         void onEvent();
     }
     public void setLoseGameListener(LoseGameListener eventListener) {
         loseGameListener = eventListener;
+    }
+    // interface of mines marked count listener
+    public interface MarkedCountListener{
+        void onMarkedChanged();
+    }
+    public void setMarkedCountListener(MarkedCountListener eventListener){
+        markedCountListener = eventListener;
     }
 }

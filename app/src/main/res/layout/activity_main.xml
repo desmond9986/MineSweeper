@@ -14,20 +14,22 @@
         android:layout_alignParentTop="true"
         android:layout_margin="10dp">
         <TextView
+            android:id="@+id/tv_mine"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Text View 1"
-            android:textSize="30dp"
+            android:text="Mines"
+            android:textSize="20dp"
             android:textAlignment="center"
             android:textColor="@color/white"/>
 
         <TextView
+            android:id="@+id/tv_marked"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Text View 2"
-            android:textSize="30dp"
+            android:text="Marked"
+            android:textSize="20dp"
             android:textAlignment="center"
             android:textColor="@color/white"/>
     </TableRow>
@@ -42,7 +44,8 @@
         android:layout_marginRight="15dp"
         app:coveredColor="@color/black"
         app:uncoveredColor="@android:color/darker_gray"
-        app:mineColor="@android:color/holo_red_dark"/>
+        app:mineColor="@android:color/holo_red_dark"
+        app:markedColor="@color/yellow"/>
 
 
     <TableRow
@@ -58,10 +61,11 @@
             android:text="Reset"
             android:layout_marginRight="5dp"/>
         <Button
+            android:id="@+id/btn_mode"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Button1"
+            android:text="Uncover Mode"
             android:layout_marginLeft="5dp"/>
     </TableRow>
 

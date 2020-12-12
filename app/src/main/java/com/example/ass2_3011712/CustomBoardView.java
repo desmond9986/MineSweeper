@@ -141,6 +141,7 @@ public class CustomBoardView extends View {
        }
        // set mine found to false
        mineFound = false;
+       wonGame = false;
        isUncoverMode = true;
        // set the initial state of board
        markedCount = 0;

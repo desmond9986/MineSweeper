@@ -72,7 +72,7 @@ public class CustomBoardView extends View {
        startGame();
    }
 
-   // colculate the mine around each cell
+   // calculate the mine around each cell
    private ArrayList<Integer> mineAroundCount(ArrayList<Integer> mines){
         ArrayList<Integer> mineAround = new ArrayList<Integer>();
         int count;
@@ -199,7 +199,6 @@ public class CustomBoardView extends View {
                         canvas.drawText("M", textBounds.centerX(), textBounds.centerY() + textOffset, textPaint);
                         // set mine found to true
                         mineFound = true;
-                        loseGameListener.onEvent();
                     }
                     else{
                         // check if the mines around the cell is not 0
@@ -226,6 +225,16 @@ public class CustomBoardView extends View {
             canvas.save();
             canvas.drawLine(0, xyPoint * i, contentWidth, xyPoint * i, paint);
             canvas.restore();
+        }
+   }
+
+   // call this method to uncover all mine
+   private void uncoverAllMines(){
+        for(int i = 0; i < 10; i++){
+            for(int j = 0; j < 10; j++){
+                if(cells[i][j].isMine())
+                    cells[i][j].uncover();
+            }
         }
    }
 
@@ -329,7 +338,11 @@ public class CustomBoardView extends View {
                     if(cells[row - 1][col - 1].getStatus().equals(Cell.Covered)) {
                         // uncover the cell that touched by user
                         cells[row - 1][col - 1].uncover();
-                        if(cells[row - 1][col - 1].getStatus().equals(Cell.Uncovered))
+                        if(cells[row - 1][col - 1].isMine()){
+                            loseGameListener.onEvent();
+                            uncoverAllMines();
+                        }
+                        else
                             checkMineAroundAndUncover(row - 1, col - 1);
                     }
                 }

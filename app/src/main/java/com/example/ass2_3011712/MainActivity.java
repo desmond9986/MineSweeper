@@ -65,6 +65,12 @@ public class MainActivity extends AppCompatActivity {
                 tv_marked.setText("Mines marked \n" + game_board.getMarkedCount());
             }
         });
+        game_board.setWinGameListener(new CustomBoardView.WinGameListener() {
+            @Override
+            public void onEvent() {
+                winGameDialog();
+            }
+        });
     }
 
     // a method that showing a dialog to tell user that they have lost the game
@@ -73,6 +79,24 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         // set the title and the message to be displayed on the dialog
         builder.setMessage("You have uncovered a mine, press reset to play again!");
+
+        // add in a positive button here
+        builder.setPositiveButton("ok", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {}
+        });
+
+        // create the dialog and display it
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    // a method that showing a dialog to tell user that they have won the game
+    private void winGameDialog(){
+        // we need a builder to create the dialog for us
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        // set the title and the message to be displayed on the dialog
+        builder.setMessage("You have won the game, press reset to play again!");
 
         // add in a positive button here
         builder.setPositiveButton("ok", new DialogInterface.OnClickListener() {

@@ -30,8 +30,10 @@ public class CustomBoardView extends View {
     private int contentWidth, contentHeight; // width and height for view
     private RectF textBounds;
     private boolean mineFound;  // store boolean to tract whether u user have clicked a mine
+    private boolean wonGame; // store boolean to tract whether user have won the game
     private LoseGameListener loseGameListener;  // listener for lose game
     private MarkedCountListener markedCountListener;    // listener for mark cell
+    private WinGameListener winGameListener; // listener for win game
     private boolean isUncoverMode;  // store boolean to track the mode of current board
     private int mineCount, markedCount; // store integer to track the number of mines and mines marked
 
@@ -208,12 +210,14 @@ public class CustomBoardView extends View {
                         }
                         }
                     canvas.restore();
-
                 }
-
             }
         }
-
+        // check if user won the game
+       if(checkWin()) {
+           wonGame = checkWin();
+           winGameListener.onEvent();
+       }
         // draw the vertical and horizontal lines
         paint.setColor(Color.WHITE);
         float xyPoint = cellLength;
@@ -237,6 +241,24 @@ public class CustomBoardView extends View {
             }
         }
    }
+
+   // call this method to check if user win the game
+    private boolean checkWin(){
+        int uncoveredCount = 0;
+
+        for(int i = 0; i < 10; i++){
+            for(int j = 0; j < 10; j++){
+                if(!cells[i][j].isMine()){
+                    if(cells[i][j].getStatus().equals(Cell.Uncovered))
+                        uncoveredCount++;
+                }
+            }
+        }
+        if(uncoveredCount == 80)
+            return true;
+        else
+            return false;
+    }
 
    // call this method to check if the mines around the cell is zero then uncover all the cells around it
    private void checkMineAroundAndUncover(int row, int col){
@@ -309,7 +331,7 @@ public class CustomBoardView extends View {
     // user
     public boolean onTouchEvent(MotionEvent event) {
         // check if a mine is uncovered
-        if(!mineFound) {
+        if(!(mineFound || wonGame)) {
             // determine what kind of touch event we have
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 //Get where the event occurred.
@@ -372,9 +394,16 @@ public class CustomBoardView extends View {
             }
         }
         else if (mineFound && event.getAction() == MotionEvent.ACTION_DOWN) {
-            // tell user that they have lost the game
-            loseGameListener.onEvent();
-            return true;
+            if(mineFound){
+                // tell user that they have lost the game
+                loseGameListener.onEvent();
+                return true;
+            }
+            else{
+                // tell user that they have won the game
+                winGameListener.onEvent();
+                return true;
+            }
         }
         return super.onTouchEvent(event);
     }
@@ -492,5 +521,12 @@ public class CustomBoardView extends View {
     }
     public void setMarkedCountListener(MarkedCountListener eventListener){
         markedCountListener = eventListener;
+    }
+    // interface of win game listener
+    public interface WinGameListener{
+        void onEvent();
+    }
+    public void setWinGameListener(WinGameListener eventListener) {
+        winGameListener = eventListener;
     }
 }

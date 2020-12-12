@@ -73,7 +73,7 @@ public class CustomBoardView extends View {
    }
 
    // colculate the mine around each cell
-   public ArrayList<Integer> mineAroundCount(ArrayList<Integer> mines){
+   private ArrayList<Integer> mineAroundCount(ArrayList<Integer> mines){
         ArrayList<Integer> mineAround = new ArrayList<Integer>();
         int count;
         for(int i = 1; i <= 100; i++){
@@ -227,9 +227,73 @@ public class CustomBoardView extends View {
             canvas.drawLine(0, xyPoint * i, contentWidth, xyPoint * i, paint);
             canvas.restore();
         }
+   }
 
-
-
+   // call this method to check if the mines around the cell is zero then uncover all the cells around it
+   private void checkMineAroundAndUncover(int row, int col){
+        // check if the cell is not mine
+        if(!cells[row][col].isMine()){
+            // check if the mines around the cell is zero
+            if(cells[row][col].getMineAround() == 0){
+                // check if the cell is above the last row
+                if(row < 9){
+                    // check if the cell below is covered then uncover it
+                    if(cells[row + 1][col].getStatus().equals(Cell.Covered)) {
+                        cells[row + 1][col].uncover();
+                        checkMineAroundAndUncover(row + 1, col);
+                    }
+                    // check if the cell is not the first column
+                    if(col > 0){
+                        if(cells[row + 1][col - 1].getStatus().equals(Cell.Covered)) {
+                            cells[row + 1][col - 1].uncover();
+                            checkMineAroundAndUncover(row + 1, col - 1);
+                        }
+                    }
+                    // check if the cell is not the last column
+                    if(col < 9){
+                        if(cells[row + 1][col + 1].getStatus().equals(Cell.Covered)) {
+                            cells[row + 1][col + 1].uncover();
+                            checkMineAroundAndUncover(row + 1, col + 1);
+                        }
+                    }
+                }
+                // check if the cell is below first row
+                if(row > 0){
+                    if(cells[row - 1][col].getStatus().equals(Cell.Covered)) {
+                        cells[row - 1][col].uncover();
+                        checkMineAroundAndUncover(row - 1, col);
+                    }
+                    // check if the cell is not the first column
+                    if(col > 0){
+                        if(cells[row - 1][col - 1].getStatus().equals(Cell.Covered)) {
+                            cells[row - 1][col - 1].uncover();
+                            checkMineAroundAndUncover(row - 1, col - 1);
+                        }
+                    }
+                    // check if the cell is not the last column
+                    if(col < 9){
+                        if(cells[row - 1][col + 1].getStatus().equals(Cell.Covered)) {
+                            cells[row - 1][col + 1].uncover();
+                            checkMineAroundAndUncover(row - 1, col + 1);
+                        }
+                    }
+                }
+                // check if the cell is not the first column
+                if(col > 0){
+                    if(cells[row][col - 1].getStatus().equals(Cell.Covered)) {
+                        cells[row][col - 1].uncover();
+                        checkMineAroundAndUncover(row, col - 1);
+                    }
+                }
+                // check if the cell is not the last column
+                if(col < 9){
+                    if(cells[row][col + 1].getStatus().equals(Cell.Covered)) {
+                        cells[row][col + 1].uncover();
+                        checkMineAroundAndUncover(row, col + 1);
+                    }
+                }
+            }
+        }
    }
 
     // public method that needs to be overridden to handle the touches from a
@@ -265,6 +329,8 @@ public class CustomBoardView extends View {
                     if(cells[row - 1][col - 1].getStatus().equals(Cell.Covered)) {
                         // uncover the cell that touched by user
                         cells[row - 1][col - 1].uncover();
+                        if(cells[row - 1][col - 1].getStatus().equals(Cell.Uncovered))
+                            checkMineAroundAndUncover(row - 1, col - 1);
                     }
                 }
                 else{

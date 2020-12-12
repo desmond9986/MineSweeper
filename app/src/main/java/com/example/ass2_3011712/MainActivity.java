@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 game_board.startGame();
-                btn_mode.setText("Uncover Mode");
+                btn_mode.setText("Marking Mode");
                 tv_mine.setText("Mines \n" + game_board.getMineCount());
                 tv_marked.setText("Mines marked \n" + game_board.getMarkedCount());
                 game_board.isUncoverMode(true);
@@ -45,11 +45,11 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if(btn_mode.getText().toString().equals("Uncover Mode")){
                     btn_mode.setText("Marking Mode");
-                    game_board.isUncoverMode(false);
+                    game_board.isUncoverMode(true);
                 }
                 else{
                     btn_mode.setText("Uncover Mode");
-                    game_board.isUncoverMode(true);
+                    game_board.isUncoverMode(false);
                 }
             }
         });

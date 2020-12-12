@@ -7,15 +7,19 @@ public class Cell {
     public final static String Uncovered ="uncovered";
     public final static String Marked = "marked";
     private boolean isMine;
+    private int mineAround;
 
-    public Cell(boolean isMine){
+    public Cell(boolean isMine, int mineAround){
         status = Covered;
         this.isMine = isMine;
+        this.mineAround = mineAround;
     }
-    // call this method to check the
+    // call this method to check the status
     public String getStatus() {
         return status;
     }
+    // call this method to check the number of mines around this cell
+    public int getMineAround() { return mineAround; }
     // call this method to check whether this is a mine
     public boolean isMine() {
         return isMine;

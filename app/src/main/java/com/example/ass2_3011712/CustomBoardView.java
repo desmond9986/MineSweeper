@@ -72,17 +72,69 @@ public class CustomBoardView extends View {
        startGame();
    }
 
+   // colculate the mine around each cell
+   public ArrayList<Integer> mineAroundCount(ArrayList<Integer> mines){
+        ArrayList<Integer> mineAround = new ArrayList<Integer>();
+        int count;
+        for(int i = 1; i <= 100; i++){
+            count = 0;
+            // check if the cell is above the last row
+            if(i < 91){
+                if(mines.contains(i+10))
+                    count++;
+                // check if the cell is not the first column
+                if(i % 10 != 1){
+                    if(mines.contains(i+10-1))
+                        count++;
+                }
+                // check if the cell is not the last column
+                if(i % 10 != 0){
+                    if(mines.contains(i+10+1))
+                        count++;
+                }
+            }
+            // check if the cell is below first row
+            if(i > 10){
+                if(mines.contains(i-10))
+                    count++;
+                // check if the cell is not the first column
+                if(i % 10 != 1){
+                    if(mines.contains(i-10-1))
+                        count++;
+                }
+                // check if the cell is not the last column
+                if(i % 10 != 0){
+                    if(mines.contains(i-10+1))
+                        count++;
+                }
+            }
+            // check if the cell is not the first column
+            if(i % 10 != 1){
+                if(mines.contains(i-1))
+                    count++;
+            }
+            // check if the cell is not the last column
+            if(i % 10 != 0){
+                if(mines.contains(i+1))
+                    count++;
+            }
+            mineAround.add(count);
+        }
+        return mineAround;
+   }
+
    // call this method to start or restart the game
    public void startGame() {
        ArrayList<Integer> mines = setMines();
+       ArrayList<Integer> mineAround = mineAroundCount(mines);
        cells = new Cell[10][10];
        for (int i = 0; i < 10; i++) {
            for (int j = 0; j < 10; j++) {
                // check if this iteration is a mine
                if (mines.contains(i * 10 + j + 1))
-                   cells[i][j] = new Cell(true);
+                   cells[i][j] = new Cell(true, mineAround.get(i * 10 + j));
                else
-                   cells[i][j] = new Cell(false);
+                   cells[i][j] = new Cell(false, mineAround.get(i * 10 + j));
            }
        }
        // set mine found to false
@@ -132,8 +184,8 @@ public class CustomBoardView extends View {
                     paint.setColor(markedColor);
                 canvas.drawRect(0,0, cellLength, cellLength, paint);
                 canvas.restore();
-                // if this is a mine and uncovered then draw the mine
-                if(cells[i][j].isMine() && cells[i][j].getStatus().equals(Cell.Uncovered)){
+                // check if this is an uncovered cell
+                if(cells[i][j].getStatus().equals(Cell.Uncovered)){
                     // set vertical center for the text
                     float textHeight = textPaint.descent() - textPaint.ascent();
                     float textOffset = (textHeight / 2) - textPaint.descent();
@@ -141,12 +193,23 @@ public class CustomBoardView extends View {
 
                     canvas.save();
                     canvas.translate((j * cellLength), (i * cellLength));
-                    textPaint.setColor(Color.BLACK);
-                    canvas.drawText("M", textBounds.centerX(), textBounds.centerY() + textOffset, textPaint);
+                    // check if this is a mine
+                    if(cells[i][j].isMine()) {
+                        textPaint.setColor(Color.BLACK);
+                        canvas.drawText("M", textBounds.centerX(), textBounds.centerY() + textOffset, textPaint);
+                        // set mine found to true
+                        mineFound = true;
+                        loseGameListener.onEvent();
+                    }
+                    else{
+                        // check if the mines around the cell is not 0
+                        if(cells[i][j].getMineAround() != 0) {
+                            textPaint.setColor(Color.WHITE);
+                            canvas.drawText("" + cells[i][j].getMineAround(), textBounds.centerX(), textBounds.centerY() + textOffset, textPaint);
+                        }
+                        }
                     canvas.restore();
-                    // set mine found to true
-                    mineFound = true;
-                    loseGameListener.onEvent();
+
                 }
 
             }
